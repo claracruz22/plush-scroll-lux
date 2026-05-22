@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Scissors, Award, Leaf } from "lucide-react";
+import { fetchPagina } from "../utils/fetchPagina";
+import { parseContent } from "../utils/parseContent";
+import { useEffect, useState } from "react";
+
+type Conteudo = ReturnType<typeof parseContent>;
 
 const categories = [
   { name: "Alfaiataria", desc: "Linhas precisas, cortes escultóricos.", img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&q=80" },
@@ -9,6 +14,22 @@ const categories = [
 ];
 
 export default function Home() {
+
+  const [conteudo, setConteudo] = useState<Conteudo | null>(null);
+
+  useEffect(() => { 
+    fetchPagina("pagina-1") 
+      .then(pagina => { 
+        // fetchPagina trouxe o JSON completo da página 
+        // parseContent separa o HTML em paragrafos, titulos, imagens... 
+        const elementos = parseContent(pagina.content.rendered); 
+        setConteudo(elementos); 
+      }) 
+      .catch(() => { 
+        console.warn("Não foi possível buscar o conteúdo do WordPress."); 
+      }); 
+  }, []); 
+
   return (
     <>
       {/* Hero */}
@@ -22,10 +43,12 @@ export default function Home() {
           <div className="max-w-xl">
             <p className="text-xs tracking-[0.4em] uppercase text-ink/70 mb-6">Coleção Outono · MMXXVI</p>
             <h1 className="font-serif text-5xl md:text-7xl leading-[1.05] font-light mb-8">
-              A elegância<br />do essencial.
+              {conteudo?.titulos[0]?.textContent}
+              <br />
+              <span>{conteudo?.titulos[1]?.textContent}</span>
             </h1>
             <p className="text-lg text-ink/80 mb-10 leading-relaxed">
-              Peças desenhadas para durar gerações. Tecidos nobres, costuras artesanais, silhuetas atemporais.
+              {conteudo?.paragrafos[0]?.textContent}
             </p>
             <div className="flex gap-4 flex-wrap">
               <a href="#colecoes" className="group inline-flex items-center gap-3 bg-ink text-ivory px-8 py-4 text-xs tracking-[0.3em] uppercase hover:bg-gold transition-colors">
